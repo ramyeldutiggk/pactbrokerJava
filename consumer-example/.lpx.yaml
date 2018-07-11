@@ -1,0 +1,42 @@
+---
+
+customer: platform
+vertical: cdc
+
+# This feature is currently not documented,
+# but it is far more easier, then installing
+# JDK and maven based on an ubuntu 14.04 image
+from: maven:3.3.9-jdk-8
+
+# Here we install curl in our image
+# It's not used and only meant for demo purposes
+install:
+  - apt-get install -y curl
+
+# We use the checked in maven wrapper, to not rely on the package manager
+build: mvn clean install && mvn pact:publish
+multistage: true
+services:
+- id: consumerexample
+  type: java
+  copy:
+  - ./target/Consumer-0.0.1-SNAPSHOT.jar /Consumer-0.0.1-SNAPSHOT.jar
+  # Memory settings have to be adjusted with respect to the resource limits below
+  exec: java -jar /Consumer-0.0.1-SNAPSHOT.jar
+  check: true
+  # These are the defaults and 
+  # needs to be enhanced for most services
+  resources:
+    requests:
+      memory: "200Mi"
+      cpu: "200m"
+    limits:
+      memory: "500Mi"
+      cpu: "1000m"
+
+watchers:
+  - navyateja.otturu@ggktech.com
+  - rohith.vallabhaneni@ggktech.com
+
+slack-channels:
+  - '@peng-cdc'
